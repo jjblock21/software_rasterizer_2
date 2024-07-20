@@ -1,0 +1,45 @@
+{
+    "C_Cpp.default.compilerPath": "C:\\Program Files\\mingw\\bin\\clang.exe",
+    "editor.rulers": [
+        80
+    ],
+    "workbench.colorCustomizations": {
+        "editorRuler.foreground": "#444c56"
+    },
+    "files.associations": {
+        "sdl.h": "c",
+        "begin_code.h": "c",
+        "sdl_main.h": "c",
+        "stdio.h": "c",
+        "corecrt_stdio_config.h": "c",
+        "corecrt.h": "c",
+        "_mingw.h": "c",
+        "_mingw_secapi.h": "c",
+        "rasterizer.h": "c",
+        "window.h": "c",
+        "initializer_list": "c",
+        "string.h": "c",
+        "cstdlib": "c",
+        "rasterizer2.h": "c"
+    },
+    "cSpell.words": [
+        "Blit",
+        "framebuffer",
+        "incx",
+        "invslope",
+        "lookat",
+        "mulv",
+        "PIXELFORMAT",
+        "roundintf",
+        "rvertex",
+        "scanline",
+        "svertex",
+        "swapf",
+        "swapi",
+        "viewbox",
+        "viewproj",
+        "WINDOWEVENT",
+        "WINDOWPOS",
+        "wireframe"
+    ]
+}

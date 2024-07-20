@@ -1,0 +1,123 @@
+#include "window.h"
+
+#include <stdio.h>
+#include <sdl/SDL.h>
+
+struct window {
+    SDL_Window *sdl_window;
+    SDL_Surface *native_surface;
+    SDL_Surface *surface;
+    int width, height;
+    bool is_open, surface_invalid;
+    void (*resize_callback)(int, int);
+} window;
+
+void init_window(int width, int height, const char *title, bool resizable,
+                 void (*resize_callback)(int, int)) {
+    SDL_Init(SDL_INIT_EVERYTHING);
+
+    window.width = width;
+    window.height = height;
+    window.resize_callback = resize_callback;
+    window.is_open = true;
+    window.surface_invalid = true;
+
+    int flags = SDL_WINDOW_SHOWN | (resizable ? SDL_WINDOW_RESIZABLE : 0);
+    window.sdl_window = SDL_CreateWindow(                      //
+        title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, //
+        width, height, flags                                   //
+    );
+}
+
+static void update_surface() {
+    // Window surface
+    window.native_surface = SDL_GetWindowSurface(window.sdl_window);
+
+    // Working surface
+    if (window.native_surface) {
+        SDL_FreeSurface(window.native_surface);
+    }
+    window.surface = SDL_CreateRGBSurfaceWithFormat(               //
+        0, window.width, window.height, 32, SDL_PIXELFORMAT_RGB888 //
+    );
+}
+
+color_t *lock_surface() {
+    if (window.surface_invalid) {
+        update_surface();
+        window.surface_invalid = false;
+    }
+
+    SDL_LockSurface(window.surface);
+    return window.surface->pixels;
+}
+
+void unlock_surface() {
+    SDL_UnlockSurface(window.surface);
+
+    // Copy pixels into window surface
+    SDL_Rect rect = {0, 0, window.width, window.height};
+    SDL_BlitSurface(window.surface, &rect, window.native_surface, &rect);
+
+    // Swap buffers
+    SDL_UpdateWindowSurface(window.sdl_window);
+}
+
+void destroy_window() {
+    if (window.sdl_window) {
+        if (window.surface) {
+            SDL_FreeSurface(window.surface);
+        }
+        SDL_DestroyWindow(window.sdl_window);
+        SDL_Quit();
+        window.sdl_window = NULL;
+    }
+}
+
+bool is_window_open() { return window.is_open; }
+int get_window_width() { return window.width; }
+int get_window_height() { return window.height; }
+
+static void handle_window_event(SDL_WindowEvent event) {
+    switch (event.event) {
+    case SDL_WINDOWEVENT_CLOSE:
+        window.is_open = false;
+        break;
+
+    case SDL_WINDOWEVENT_RESIZED:
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+        // Update window
+        SDL_GetWindowSize(window.sdl_window, &window.width, &window.height);
+        window.surface_invalid = true;
+
+        // Callback for user code
+        if (window.resize_callback) {
+            window.resize_callback(window.width, window.height);
+        }
+        break;
+    }
+}
+
+void poll_events() {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+        case SDL_QUIT:
+            window.is_open = false;
+            break;
+
+        case SDL_WINDOWEVENT:
+            handle_window_event(event.window);
+            break;
+        }
+    }
+}
+
+void print_sdl_error() {
+    const char *message = SDL_GetError();
+    if (message == NULL || message[0] == '\0') {
+        fprintf(stderr, "No Error\n");
+        return;
+    }
+    fprintf(stderr, "%s\n", message);
+}
