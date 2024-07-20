@@ -1,9 +1,9 @@
 # List all files in the specified directory with the specified extension
-__list_files = 																			 \
-	$(subst \,/, 																		 \
-		$(subst $(shell cd)\$(1)\,, 													 \
-			$(shell dir "$(1)\" /s /b | findstr \S*\$(2)) 								 \
-		) 																				 \
+__list_files = 											  \
+	$(subst \,/, 										  \
+		$(subst $(shell cd)\$(1)\,, 					  \
+			$(shell dir "$(1)\" /s /b | findstr \S*\$(2)) \
+		) 												  \
 	)
 
 # -------- DO NOT EDIT ABOVE THIS LINE --------
@@ -39,8 +39,8 @@ build: $(OUTPATH)
 $(OUTPATH): $(DIRS) $(OBJECTS) $(DEPS)
 	$(LINKER) $(LFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPATH)
 
-	$(foreach DEP,$(DEPS),																 \
-		copy /y $(subst /,\,$(DEP)) $(subst /,\,$(OUTDIR)/$(notdir $(DEP))) &			 \
+	$(foreach DEP,$(DEPS),													  \
+		copy /y $(subst /,\,$(DEP)) $(subst /,\,$(OUTDIR)/$(notdir $(DEP))) & \
 	)
 
 # Create directories required for building
