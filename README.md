@@ -1,2 +1,2 @@
 # software_rasterizer_2
- Software rasterizer for learning C
+A simple software rasterizer I wrote for learning C.
