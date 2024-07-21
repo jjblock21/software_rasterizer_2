@@ -4,11 +4,11 @@
 #include <string.h>
 #include "../color.h"
 
-void clear(framebuffer_t *fb, color_t color) {
+void clear(framebuffer_t *fb, char r, char g, char b) {
     if (!fb->pixels) return;
 
     for (int i = 0; i < fb->width * fb->height; i++) {
-        fb->pixels[i] = color;
+        fb->pixels[i] = (color_t){r, g, b, 255};
     }
 }
 

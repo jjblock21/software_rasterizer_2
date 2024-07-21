@@ -78,6 +78,10 @@ bool is_window_open() { return window.is_open; }
 int get_window_width() { return window.width; }
 int get_window_height() { return window.height; }
 
+float get_window_aspect_ratio() {
+    return (float)get_window_width() / get_window_height();
+}
+
 static void handle_window_event(SDL_WindowEvent event) {
     switch (event.event) {
     case SDL_WINDOWEVENT_CLOSE:
@@ -112,6 +116,8 @@ void poll_events() {
         }
     }
 }
+
+void sleep(float seconds) { SDL_Delay(seconds * 1000); }
 
 void print_sdl_error() {
     const char *message = SDL_GetError();

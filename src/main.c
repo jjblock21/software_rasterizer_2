@@ -1,26 +1,29 @@
 #include <stdio.h>
 #include <time.h>
-
 #define SDL_MAIN_HANDLED
-#include <sdl/SDL.h>
-
-#include "renderer/rasterizer.h"
 #include "window.h"
+#include "renderer/rasterizer.h"
 
-// clang-format off
-vertex_t plane_vertices[8] = {
-    VERTEX(-.5, -.5, -.5, 255,   0,   0),
-    VERTEX( .5, -.5, -.5, 255, 255,   0),
-    VERTEX( .5,  .5, -.5,   0, 255,   0),
-    VERTEX(-.5,  .5, -.5,   0, 255, 255),
-    VERTEX(-.5, -.5,  .5,   0,   0, 255),
-    VERTEX( .5, -.5,  .5, 255,   0, 255),
-    VERTEX( .5,  .5,  .5, 128, 255, 255),
-    VERTEX(-.5,  .5,  .5, 255, 128, 128),
+struct app_state {
+    framebuffer_t fb;
+    mesh_t mesh;
+    uniform_data_t uniforms;
+    mat4 view, proj, vp;
+    vec3 rotation;
 };
-// clang-format on
 
-unsigned short plane_indices[36] = {
+vertex_t mesh_vertices[8] = {
+    make_vertex(-.5, -.5, -.5, 255, 0, 0),
+    make_vertex(.5, -.5, -.5, 255, 255, 0),
+    make_vertex(.5, .5, -.5, 0, 255, 0),
+    make_vertex(-.5, .5, -.5, 0, 255, 255),
+    make_vertex(-.5, -.5, .5, 0, 0, 255),
+    make_vertex(.5, -.5, .5, 255, 0, 255),
+    make_vertex(.5, .5, .5, 128, 255, 255),
+    make_vertex(-.5, .5, .5, 255, 128, 128),
+};
+
+unsigned short mesh_indices[36] = {
     0, 1, 3, 3, 1, 2, //
     1, 5, 2, 2, 5, 6, //
     5, 4, 6, 6, 4, 7, //
@@ -29,80 +32,98 @@ unsigned short plane_indices[36] = {
     4, 5, 0, 0, 5, 1, //
 };
 
-struct state {
-    framebuffer_t fb;
-    mat4 vp_mat;
-} state;
+struct app_state state = {0};
 
-static float get_ms_since(clock_t start) {
-    clock_t current = clock();
-    return (float)(current - start) / CLOCKS_PER_SEC * 1000;
+static float get_elapsed_seconds(clock_t start, clock_t end) {
+    return (end - start) / (float)CLOCKS_PER_SEC;
 }
 
-static void create_viewproj_mat(float aspect, mat4 result) {
-    mat4 view, proj;
-    glm_lookat((vec3){0, 0, -3}, GLM_VEC3_ZERO, GLM_YUP, view);
-    glm_perspective(glm_rad(40), aspect, .1, 100, proj);
-
-    glm_mul(proj, view, result);
-}
-
-static void window_resized(int width, int height) {
-    state.fb.width = width;
-    state.fb.height = height;
-    create_viewproj_mat((float)width / height, state.vp_mat);
-}
-
-int main() {
-    init_window(800, 600, "Software Renderer", true, window_resized);
-    int width = get_window_width();
-    int height = get_window_height();
-
+static void init() {
     state.fb = (framebuffer_t){
-        .width = width,
-        .height = height,
-        .pixels = NULL, // Uses buffer provided by window
+        .width = get_window_width(),
+        .height = get_window_height(),
+        .pixels = NULL, // Uses pixel buffer of window
     };
 
-    uniform_data_t uniforms;
-    mesh_t mesh = {
-        .vertices = plane_vertices,
-        .indices = plane_indices,
+    state.mesh = (mesh_t){
+        .vertices = mesh_vertices,
+        .indices = mesh_indices,
         .vertex_count = 8,
         .index_count = 36,
     };
 
-    float angle = 0;
-    create_viewproj_mat((float)width / height, state.vp_mat);
+    vec4 camera_pos = {0, 0, -3};
+    vec4 model_pos = {0, 0, 0};
+
+    // Camera matrices
+    glm_lookat(camera_pos, model_pos, GLM_YUP, state.view);
+    glm_perspective_default(get_window_aspect_ratio(), state.proj);
+    glm_mat4_mul(state.proj, state.view, state.vp);
+}
+
+static void update(float dt) {
+    state.fb.pixels = lock_surface();
+    clear(&state.fb, 0, 0, 0);
+
+    // Rotate mesh
+    state.rotation[0] += .5 * dt;
+    state.rotation[1] += 1 * dt;
+
+    // Calculate mvp matrix
+    mat4 model;
+    glm_euler(state.rotation, model);
+    glm_mat4_mul(state.vp, model, state.uniforms.mvp);
+
+    draw_mesh(&state.fb, &state.uniforms, state.mesh,
+              DRAW_FLAGS_BACKFACE_CULLING);
+
+    unlock_surface();
+}
+
+static void on_resize(int width, int height) {
+    state.fb.width = width;
+    state.fb.height = height;
+
+    // Update projection matrix
+    glm_perspective_default(get_window_aspect_ratio(), state.proj);
+    glm_mat4_mul(state.proj, state.view, state.vp);
+}
+
+int main() {
+    init_window(800, 600, "Software Renderer", true, on_resize);
+    init();
+
+    int fps_limit = 120;
+    float interval = 1.0 / fps_limit;
 
     int frames = 0;
+    float time = 0;
     clock_t start = clock();
 
     while (is_window_open()) {
-        poll_events();
+        // Calculate delta time
+        clock_t now = clock();
+        float dt = get_elapsed_seconds(start, now);
+        start = now;
 
-        // Calculate mvp matrix
-        mat4 model;
-        glm_euler((vec3){glm_rad(angle / 3), glm_rad(angle), 0}, model);
-        glm_mul(state.vp_mat, model, uniforms.mvp);
-
-        state.fb.pixels = lock_surface();
-        clear(&state.fb, (color_t){0, 0, 0, 255});
-
-        draw_mesh(&state.fb, &uniforms, mesh, 0);
-        unlock_surface();
-
-        angle += .05;
-
-        // Print avg. frame time and fps over 200 frames
-        if (++frames >= 200) {
-            float avg = get_ms_since(start) / 200;
-            int fps = roundf(1000 / avg);
-            printf("Frame Time: %gms, FPS: %d\n", avg, fps);
-
-            frames = 0;
-            start = clock();
+        // Update FPS counter
+        if ((time += dt) >= 1) {
+            float ft = time / frames * 1000;
+            printf("FPS: %d (Limit: %d), avg. Frame Time: %.2fms\n", frames,
+                   fps_limit, ft);
+            time = frames = 0;
         }
+
+        poll_events();
+        update(dt);
+
+        // Framerate limit
+        float elapsed = get_elapsed_seconds(start, clock());
+        if (elapsed < interval) {
+            sleep(interval - elapsed);
+        }
+
+        frames++;
     }
 
     destroy_window();

@@ -15,8 +15,10 @@ void destroy_window();
 bool is_window_open();
 int get_window_width();
 int get_window_height();
+float get_window_aspect_ratio();
 
 void poll_events();
+void sleep(float seconds);
 void print_sdl_error();
 
 #endif /* __SRC_WINDOW_H__ */

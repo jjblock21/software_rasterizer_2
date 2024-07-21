@@ -25,7 +25,8 @@ typedef struct {
     int index_count;
 } mesh_t;
 
-#define VERTEX(x, y, z, r, g, b)                                               \
+// Shorten the syntax for creating vertices
+#define make_vertex(x, y, z, r, g, b)                                          \
     (vertex_t) { .pos = {x, y, z, 1}, .color = (color_t){r, g, b, 255}, }
 
 // Draw a mesh to the given framebuffer
