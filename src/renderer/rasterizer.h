@@ -5,8 +5,8 @@
 #include "framebuffer.h"
 
 typedef enum {
-    DRAW_FLAGS_BACKFACE_CULLING = 1 << 0,
-    DRAW_FLAGS_WIREFRAME = 1 << 1,
+    NO_BACKFACE_CULLING = 1 << 0,
+    DRAW_WIREFRAME = 1 << 1,
 } flags_t;
 
 typedef struct {
@@ -30,7 +30,7 @@ typedef struct {
     (vertex_t) { .pos = {x, y, z, 1}, .color = (color_t){r, g, b, 255}, }
 
 // Draw a mesh to the given framebuffer
-void draw_mesh(framebuffer_t *fb, uniform_data_t *u, mesh_t mesh,
-               flags_t flags);
+void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
+               const mesh_t *mesh, const flags_t flags);
 
 #endif /* __SRC_RENDERER_RASTERIZER2_H__ */

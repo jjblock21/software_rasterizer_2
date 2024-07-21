@@ -10,7 +10,7 @@ struct app_state {
     uniform_data_t uniforms;
     mat4 view, proj, vp;
     vec3 rotation;
-};
+} state = {0};
 
 vertex_t mesh_vertices[8] = {
     make_vertex(-.5, -.5, -.5, 255, 0, 0),
@@ -31,8 +31,6 @@ unsigned short mesh_indices[36] = {
     3, 2, 7, 7, 2, 6, //
     4, 5, 0, 0, 5, 1, //
 };
-
-struct app_state state = {0};
 
 static float get_elapsed_seconds(clock_t start, clock_t end) {
     return (end - start) / (float)CLOCKS_PER_SEC;
@@ -74,8 +72,8 @@ static void update(float dt) {
     glm_euler(state.rotation, model);
     glm_mat4_mul(state.vp, model, state.uniforms.mvp);
 
-    draw_mesh(&state.fb, &state.uniforms, state.mesh,
-              DRAW_FLAGS_BACKFACE_CULLING);
+    draw_mesh(&state.fb, &state.uniforms, &state.mesh,
+              NO_BACKFACE_CULLING | DRAW_WIREFRAME);
 
     unlock_surface();
 }
@@ -93,7 +91,7 @@ int main() {
     init_window(800, 600, "Software Renderer", true, on_resize);
     init();
 
-    int fps_limit = 120;
+    int fps_limit = 60;
     float interval = 1.0 / fps_limit;
 
     int frames = 0;
@@ -107,11 +105,14 @@ int main() {
         start = now;
 
         // Update FPS counter
-        if ((time += dt) >= 1) {
+        time += dt;
+        if (time >= 1) {
             float ft = time / frames * 1000;
             printf("FPS: %d (Limit: %d), avg. Frame Time: %.2fms\n", frames,
                    fps_limit, ft);
-            time = frames = 0;
+
+            frames = 0;
+            time = 0;
         }
 
         poll_events();
