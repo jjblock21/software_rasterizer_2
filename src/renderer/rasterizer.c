@@ -39,7 +39,7 @@ static void draw_line(framebuffer_t *fb, svertex_t v0, svertex_t v1) {
     float x = v0.pos[0];
     float y = v0.pos[1];
 
-    int steps = abs(dx) > abs(dy) ? abs(dx) : abs(dy);
+    int steps = maxi(abs(dx), abs(dy));
     float incx = dx / (float)steps;
     float incy = dy / (float)steps;
 
