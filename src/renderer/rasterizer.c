@@ -26,11 +26,9 @@ static void clip_to_screen_coord(framebuffer_t *fb, vec4 pos, ivec2 result) {
     result[1] = (int)roundf((pos[1] / pos[3] + 1) * fb->height / 2);
 }
 
-static bool is_front_facing(svertex_t v0, svertex_t v1, svertex_t v2,
-                            winding_order_t wo) {
-    int sign = (v0.pos[0] - v1.pos[0]) * (v0.pos[1] - v2.pos[1]) -
-               (v0.pos[0] - v2.pos[0]) * (v0.pos[1] - v1.pos[1]);
-    return (wo == WINDING_ORDER_CC) ? sign < 0 : sign > 0;
+static bool is_front_facing(svertex_t v0, svertex_t v1, svertex_t v2) {
+    return ((v0.pos[0] - v1.pos[0]) * (v0.pos[1] - v2.pos[1]) -
+            (v0.pos[0] - v2.pos[0]) * (v0.pos[1] - v1.pos[1])) < 0;
 }
 
 static void draw_line(framebuffer_t *fb, svertex_t v0, svertex_t v1) {
@@ -54,7 +52,7 @@ static void draw_line(framebuffer_t *fb, svertex_t v0, svertex_t v1) {
 }
 
 void draw_mesh(framebuffer_t *fb, uniform_data_t *data, mesh_t mesh,
-               winding_order_t wo) {
+               flags_t flags) {
     if (mesh.vertex_count <= 0 || mesh.index_count <= 0) {
         return;
     }
@@ -71,13 +69,8 @@ void draw_mesh(framebuffer_t *fb, uniform_data_t *data, mesh_t mesh,
     }
 
     for (int i = 0; i < mesh.index_count - 2; i += 3) {
-        int i0, i1, i2;       // Indices
-        rvertex_t v0, v1, v2; // Result vertices
-        svertex_t s0, s1, s2; // Screen vertices
-
-        i0 = mesh.indices[i];
-        i1 = mesh.indices[i + 1];
-        i2 = mesh.indices[i + 2];
+        int i0 = mesh.indices[i], i1 = mesh.indices[i + 1],
+            i2 = mesh.indices[i + 2];
 
         // Make sure the indices are within bounds
         if (i0 >= mesh.vertex_count || i1 >= mesh.vertex_count ||
@@ -85,9 +78,8 @@ void draw_mesh(framebuffer_t *fb, uniform_data_t *data, mesh_t mesh,
             break;
         }
 
-        v0 = results[i0];
-        v1 = results[i1];
-        v2 = results[i2];
+        // Vertex shader results
+        rvertex_t v0 = results[i0], v1 = results[i1], v2 = results[i2];
 
         // Don't render triangles that are not visible
         if (outside_viewbox(v0.pos) && outside_viewbox(v1.pos) &&
@@ -95,12 +87,14 @@ void draw_mesh(framebuffer_t *fb, uniform_data_t *data, mesh_t mesh,
             continue;
         }
 
+        svertex_t s0, s1, s2; // Screen vertices
         clip_to_screen_coord(fb, v0.pos, s0.pos);
         clip_to_screen_coord(fb, v1.pos, s1.pos);
         clip_to_screen_coord(fb, v2.pos, s2.pos);
 
-        // Only render front-facing triangles
-        if (!is_front_facing(s0, s1, s2, wo)) {
+        // Backface culling
+        if ((flags & DRAW_FLAGS_BACKFACE_CULLING) &&
+            !is_front_facing(s0, s1, s2)) {
             continue;
         }
 

@@ -23,6 +23,7 @@
         "rasterizer2.h": "c"
     },
     "cSpell.words": [
+        "BACKFACE",
         "Blit",
         "framebuffer",
         "incx",

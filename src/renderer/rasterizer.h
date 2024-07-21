@@ -5,9 +5,9 @@
 #include "framebuffer.h"
 
 typedef enum {
-    WINDING_ORDER_CC,
-    WINDING_ORDER_CCW,
-} winding_order_t;
+    DRAW_FLAGS_BACKFACE_CULLING = 1 << 0,
+    DRAW_FLAGS_WIREFRAME = 1 << 1,
+} flags_t;
 
 typedef struct {
     mat4 mvp;
@@ -30,6 +30,6 @@ typedef struct {
 
 // Draw a mesh to the given framebuffer
 void draw_mesh(framebuffer_t *fb, uniform_data_t *u, mesh_t mesh,
-               winding_order_t wo);
+               flags_t flags);
 
 #endif /* __SRC_RENDERER_RASTERIZER2_H__ */

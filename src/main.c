@@ -31,18 +31,26 @@ unsigned short plane_indices[36] = {
 
 struct state {
     framebuffer_t fb;
-    uniform_data_t uniforms;
-    mesh_t mesh;
-} state = {0};
+    mat4 vp_mat;
+} state;
 
 static float get_ms_since(clock_t start) {
     clock_t current = clock();
     return (float)(current - start) / CLOCKS_PER_SEC * 1000;
 }
 
+static void create_viewproj_mat(float aspect, mat4 result) {
+    mat4 view, proj;
+    glm_lookat((vec3){0, 0, -3}, GLM_VEC3_ZERO, GLM_YUP, view);
+    glm_perspective(glm_rad(40), aspect, .1, 100, proj);
+
+    glm_mul(proj, view, result);
+}
+
 static void window_resized(int width, int height) {
     state.fb.width = width;
     state.fb.height = height;
+    create_viewproj_mat((float)width / height, state.vp_mat);
 }
 
 int main() {
@@ -56,20 +64,16 @@ int main() {
         .pixels = NULL, // Uses buffer provided by window
     };
 
-    state.mesh = (mesh_t){
+    uniform_data_t uniforms;
+    mesh_t mesh = {
         .vertices = plane_vertices,
         .indices = plane_indices,
         .vertex_count = 8,
         .index_count = 36,
     };
 
-    float aspect = width / (float)height;
     float angle = 0;
-
-    mat4 view, proj, vp;
-    glm_lookat((vec3){0, 0, -3}, GLM_VEC3_ZERO, GLM_YUP, view);
-    glm_perspective(glm_rad(40), aspect, .1, 100, proj);
-    glm_mul(proj, view, vp);
+    create_viewproj_mat((float)width / height, state.vp_mat);
 
     int frames = 0;
     clock_t start = clock();
@@ -77,17 +81,18 @@ int main() {
     while (is_window_open()) {
         poll_events();
 
-        // Calculate rotating model matrix
+        // Calculate mvp matrix
         mat4 model;
-        glm_euler((vec3){glm_rad(angle / 2), glm_rad(angle), 0}, model);
-        glm_mul(vp, model, state.uniforms.mvp);
-        angle += .05;
+        glm_euler((vec3){glm_rad(angle / 3), glm_rad(angle), 0}, model);
+        glm_mul(state.vp_mat, model, uniforms.mvp);
 
         state.fb.pixels = lock_surface();
         clear(&state.fb, (color_t){0, 0, 0, 255});
 
-        draw_mesh(&state.fb, &state.uniforms, state.mesh, WINDING_ORDER_CC);
+        draw_mesh(&state.fb, &uniforms, mesh, 0);
         unlock_surface();
+
+        angle += .05;
 
         // Print avg. frame time and fps over 200 frames
         if (++frames >= 200) {
