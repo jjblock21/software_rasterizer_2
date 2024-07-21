@@ -72,8 +72,8 @@ static void update(float dt) {
     glm_euler(state.rotation, model);
     glm_mat4_mul(state.vp, model, state.uniforms.mvp);
 
-    draw_mesh(&state.fb, &state.uniforms, &state.mesh,
-              NO_BACKFACE_CULLING | DRAW_WIREFRAME);
+    // Only wireframe supported right now
+    draw_mesh(&state.fb, &state.uniforms, &state.mesh, DRAW_WIREFRAME);
 
     unlock_surface();
 }
