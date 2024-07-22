@@ -2,7 +2,7 @@
 #include "utils.h"
 
 typedef struct {
-    rgba32_t color;
+    color_t color;
 } rvertex_t; // Result vertex
 
 static bool is_outside_viewbox(vec4 pos) {
@@ -37,7 +37,7 @@ static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
     float incy = dy / (float)steps;
 
     for (int i = 0; i <= steps; i++) {
-        set_pixel(fb, x, y, (rgba32_t){255, 255, 255, 255});
+        set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
 
         x += incx;
         y += incy;

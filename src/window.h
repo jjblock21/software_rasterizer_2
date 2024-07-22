@@ -8,7 +8,7 @@
 void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int));
 
-rgba32_t *lock_surface();
+color_t *lock_surface();
 void unlock_surface();
 
 void destroy_window();

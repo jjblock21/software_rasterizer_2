@@ -9,7 +9,7 @@ struct window {
     SDL_Surface *surface;
     int width, height;
     bool is_open, surface_invalid;
-    rgba32_t *pixels;
+    color_t *pixels;
     void (*resize_callback)(int, int);
 } window;
 
@@ -45,7 +45,7 @@ static void update_surface() {
     );
 }
 
-rgba32_t *lock_surface() {
+color_t *lock_surface() {
     if (!window.pixels) {
         if (window.surface_invalid) {
             update_surface();

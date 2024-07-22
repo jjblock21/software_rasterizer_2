@@ -6,7 +6,7 @@
 
 typedef struct {
     uint8_t r, g, b, a;
-} rgba32_t;
+} color_t;
 
 int mini(int a, int b);
 int maxi(int a, int b);
