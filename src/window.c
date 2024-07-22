@@ -44,7 +44,6 @@ void *lock_surface(int *pitch) {
         window.window_surface = SDL_GetWindowSurface(window.sdl_window);
         window.surface = SDL_CreateRGBSurfaceWithFormat(
             0, window.width, window.height, 32, SDL_PIXELFORMAT_RGB888);
-        window.update_surface = false;
     }
 
     SDL_LockSurface(window.surface);

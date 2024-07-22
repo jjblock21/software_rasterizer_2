@@ -44,8 +44,7 @@ void fb_clear(framebuffer_t *fb, vec4 color) {
 }
 
 void fb_set_pixel(framebuffer_t *fb, int x, int y, vec4 color) {
-    if (x >= 0 && y >= 0 && x < fb->width && y < fb->height) {
-        // This is a little slow (~.5ms)
+    if (fb->pixels && x >= 0 && y >= 0 && x < fb->width && y < fb->height) {
         glm_vec4_copy(color, fb->pixels[y * fb->width + x]);
     }
 }
