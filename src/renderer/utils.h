@@ -4,10 +4,6 @@
 #include <stdint.h>
 #include <cglm/cglm.h>
 
-typedef struct {
-    char r, g, b, a;
-} color_t;
-
 int mini(int a, int b);
 int maxi(int a, int b);
 int mini3(int a, int b, int c);

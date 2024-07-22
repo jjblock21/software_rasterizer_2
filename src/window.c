@@ -32,7 +32,7 @@ void init_window(int width, int height, const char *title, bool resizable,
     );
 }
 
-color_t *lock_surface() {
+void *lock_surface(int *pitch) {
     if (window.pixels) {
         return window.pixels; // Already called
     }
@@ -49,6 +49,8 @@ color_t *lock_surface() {
 
     SDL_LockSurface(window.surface);
     window.pixels = window.surface->pixels;
+
+    *pitch = window.surface->pitch;
     return window.pixels;
 }
 
