@@ -1,13 +1,8 @@
-#ifndef __SRC_RENDERER_RASTERIZER2_H__
-#define __SRC_RENDERER_RASTERIZER2_H__
+#ifndef __SRC_RENDERER_RASTERIZER_H__
+#define __SRC_RENDERER_RASTERIZER_H__
 
 #include <cglm/cglm.h>
 #include "framebuffer.h"
-
-typedef enum {
-    NO_BACKFACE_CULLING = 1 << 0,
-    DRAW_WIREFRAME = 1 << 1,
-} flags_t;
 
 typedef struct {
     mat4 mvp;
@@ -15,7 +10,7 @@ typedef struct {
 
 typedef struct {
     vec4 pos;
-    color_t color;
+    rgba32_t color;
 } vertex_t;
 
 typedef struct {
@@ -27,10 +22,10 @@ typedef struct {
 
 // Shorten the syntax for creating vertices
 #define make_vertex(x, y, z, r, g, b)                                          \
-    (vertex_t) { .pos = {x, y, z, 1}, .color = (color_t){r, g, b, 255}, }
+    (vertex_t) { .pos = {x, y, z, 1}, .color = (rgba32_t){r, g, b, 255}, }
 
 // Draw a mesh to the given framebuffer
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
-               const mesh_t *mesh, const flags_t flags);
+               const mesh_t *mesh);
 
-#endif /* __SRC_RENDERER_RASTERIZER2_H__ */
+#endif /* __SRC_RENDERER_RASTERIZER_H__ */

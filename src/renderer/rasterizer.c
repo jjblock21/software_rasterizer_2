@@ -1,12 +1,11 @@
 #include "rasterizer.h"
-
 #include "utils.h"
 
 typedef struct {
-    color_t color;
+    rgba32_t color;
 } rvertex_t; // Result vertex
 
-static bool outside_viewbox(vec4 pos) {
+static bool is_outside_viewbox(vec4 pos) {
     // clang-format off
     return -pos[3] > pos[0] || pos[0] > pos[3] 
         || -pos[3] > pos[1] || pos[1] > pos[3] 
@@ -14,49 +13,47 @@ static bool outside_viewbox(vec4 pos) {
     // clang-format on
 }
 
-// Perform perspective division and map x and y to screen coordinates
-static void clip_to_screen_coord(framebuffer_t *fb, vec4 pos, ivec2 result) {
+// Perform perspective division and map x and y to screen space
+static void clip_to_screen_space(framebuffer_t *fb, vec4 pos, ivec2 result) {
     result[0] = (int)roundf((pos[0] / pos[3] + 1) * fb->width / 2);
     result[1] = (int)roundf((pos[1] / pos[3] + 1) * fb->height / 2);
 }
 
-static bool is_front_facing(ivec2 v0, ivec2 v1, ivec2 v2) {
+// Positive if winding order is clockwise
+static float edge_function(ivec2 v0, ivec2 v1, ivec2 v2) {
     return ((v0[0] - v1[0]) * (v0[1] - v2[1]) -
-            (v0[0] - v2[0]) * (v0[1] - v1[1])) < 0;
+            (v0[0] - v2[0]) * (v0[1] - v1[1]));
 }
 
-static void draw_line(framebuffer_t *fb, ivec2 start, ivec2 end,
-                      color_t color) {
-    int dx = end[0] - start[0];
-    int dy = end[1] - start[1];
-    float x = start[0];
-    float y = start[1];
+static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
+                      ivec2 p1) {
+    int dx = p1[0] - p0[0];
+    int dy = p1[1] - p0[1];
+    float x = p0[0];
+    float y = p0[1];
 
     int steps = maxi(abs(dx), abs(dy));
     float incx = dx / (float)steps;
     float incy = dy / (float)steps;
 
     for (int i = 0; i <= steps; i++) {
-        // color_t color = lerp_color(v0.color, v1.color, (float)i / steps);
-        set_pixel(fb, x, y, color);
+        set_pixel(fb, x, y, (rgba32_t){255, 255, 255, 255});
+
         x += incx;
         y += incy;
     }
 }
 
 static void draw_triangle(framebuffer_t *fb, rvertex_t v0, ivec2 p0,
-                          rvertex_t v1, ivec2 p1, rvertex_t v2, ivec2 p2,
-                          flags_t flags) {
-    if (flags & DRAW_WIREFRAME) {
-        const color_t color = {255, 255, 255, 255};
-        draw_line(fb, p0, p1, color);
-        draw_line(fb, p1, p2, color);
-        draw_line(fb, p2, p0, color);
-    }
+                          rvertex_t v1, ivec2 p1, rvertex_t v2, ivec2 p2) {
+    // Only draw wireframe for now
+    draw_line(fb, v0, p0, v1, p1);
+    draw_line(fb, v1, p1, v2, p2);
+    draw_line(fb, v2, p2, v0, p0);
 }
 
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
-               const mesh_t *mesh, const flags_t flags) {
+               const mesh_t *mesh) {
     if (mesh->vertex_count <= 0 || mesh->index_count <= 0) {
         return;
     }
@@ -72,7 +69,7 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
 
         // This is equivalent to the vertex shader
         glm_mat4_mulv(uniforms->mvp, in->pos, pos);
-        out->color = in->color;
+        in->color = out->color;
     }
 
     for (int i = 0; i < mesh->index_count - 2; i += 3) {
@@ -90,18 +87,19 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
         float *p0 = positions[i0], *p1 = positions[i1], *p2 = positions[i2];
 
         // Don't render triangles that are not visible
-        if (outside_viewbox(p0) && outside_viewbox(p1) && outside_viewbox(p2)) {
+        if (is_outside_viewbox(p0) && is_outside_viewbox(p1) &&
+            is_outside_viewbox(p2)) {
             continue;
         }
 
         ivec2 s0, s1, s2; // Screen positions
-        clip_to_screen_coord(fb, p0, s0);
-        clip_to_screen_coord(fb, p1, s1);
-        clip_to_screen_coord(fb, p2, s2);
+        clip_to_screen_space(fb, p0, s0);
+        clip_to_screen_space(fb, p1, s1);
+        clip_to_screen_space(fb, p2, s2);
 
-        // Only render front facing triangles
-        if ((flags & NO_BACKFACE_CULLING) || is_front_facing(s0, s1, s2)) {
-            draw_triangle(fb, v0, s0, v1, s1, v2, s2, flags);
+        // Backface culling (front facing = ccw)
+        if (edge_function(s0, s1, s2) < 0) {
+            draw_triangle(fb, v0, s0, v1, s1, v2, s2);
         }
     }
 }

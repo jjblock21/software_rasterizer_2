@@ -20,14 +20,22 @@
         "initializer_list": "c",
         "string.h": "c",
         "cstdlib": "c",
-        "rasterizer2.h": "c"
+        "rasterizer2.h": "c",
+        "framebuffer.h": "c"
     },
     "cSpell.words": [
         "BACKFACE",
         "Blit",
+        "clampf",
         "framebuffer",
         "incx",
         "invslope",
+        "lerpclr",
+        "lerpf",
+        "lerpi",
+        "lerpivec",
+        "lerpv",
+        "lerpvec",
         "lookat",
         "mulv",
         "PIXELFORMAT",

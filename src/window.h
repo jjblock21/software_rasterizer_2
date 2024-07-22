@@ -2,12 +2,13 @@
 #define __SRC_WINDOW_H__
 
 #include <stdbool.h>
-#include "color.h"
+#include <stdint.h>
+#include "renderer/utils.h"
 
 void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int));
 
-color_t *lock_surface();
+rgba32_t *lock_surface();
 void unlock_surface();
 
 void destroy_window();

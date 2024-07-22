@@ -9,6 +9,7 @@ struct window {
     SDL_Surface *surface;
     int width, height;
     bool is_open, surface_invalid;
+    rgba32_t *pixels;
     void (*resize_callback)(int, int);
 } window;
 
@@ -16,11 +17,13 @@ void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int)) {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    window.width = width;
-    window.height = height;
-    window.resize_callback = resize_callback;
-    window.is_open = true;
-    window.surface_invalid = true;
+    window = (struct window){
+        .width = width,
+        .height = height,
+        .is_open = true,
+        .surface_invalid = true,
+        .resize_callback = resize_callback,
+    };
 
     int flags = SDL_WINDOW_SHOWN | (resizable ? SDL_WINDOW_RESIZABLE : 0);
     window.sdl_window = SDL_CreateWindow(                      //
@@ -42,17 +45,22 @@ static void update_surface() {
     );
 }
 
-color_t *lock_surface() {
-    if (window.surface_invalid) {
-        update_surface();
-        window.surface_invalid = false;
-    }
+rgba32_t *lock_surface() {
+    if (!window.pixels) {
+        if (window.surface_invalid) {
+            update_surface();
+            window.surface_invalid = false;
+        }
 
-    SDL_LockSurface(window.surface);
-    return window.surface->pixels;
+        SDL_LockSurface(window.surface);
+        window.pixels = window.surface->pixels;
+    }
+    return window.pixels;
 }
 
 void unlock_surface() {
+    if (!window.pixels) return;
+    window.pixels = NULL;
     SDL_UnlockSurface(window.surface);
 
     // Copy pixels into window surface
