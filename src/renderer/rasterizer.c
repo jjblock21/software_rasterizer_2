@@ -2,7 +2,7 @@
 #include "utils.h"
 
 typedef struct {
-    vec4 color;
+    vec3 color;
 } rvertex_t; // Result vertex
 
 static bool is_outside_viewbox(vec4 pos) {
@@ -15,8 +15,8 @@ static bool is_outside_viewbox(vec4 pos) {
 
 // Perform perspective division and map x and y to screen space
 static void clip_to_screen_space(framebuffer_t *fb, vec4 pos, ivec2 result) {
-    result[0] = (int)roundf((pos[0] / pos[3] + 1) * fb->width / 2);
-    result[1] = (int)roundf((pos[1] / pos[3] + 1) * fb->height / 2);
+    result[0] = roundintf((pos[0] / pos[3] + 1) * fb->width / 2);
+    result[1] = roundintf((pos[1] / pos[3] + 1) * fb->height / 2);
 }
 
 // Positive if winding order is clockwise
@@ -37,7 +37,7 @@ static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
     float incy = dy / (float)steps;
 
     for (int i = 0; i <= steps; i++) {
-        fb_set_pixel(fb, x, y, GLM_VEC4_ONE);
+        set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
         x += incx;
         y += incy;
     }

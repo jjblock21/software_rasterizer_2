@@ -10,7 +10,7 @@ typedef struct {
 
 typedef struct {
     vec4 pos;
-    vec4 color;
+    vec3 color;
 } vertex_t;
 
 typedef struct {
@@ -22,7 +22,7 @@ typedef struct {
 
 // Shorten the syntax for creating vertices
 #define make_vertex(x, y, z, r, g, b)                                          \
-    (vertex_t) { .pos = {x, y, z, 1}, .color = {r, g, b, 1}, }
+    (vertex_t) { .pos = {x, y, z, 1}, .color = {r, g, b}, }
 
 // Draw a mesh to the given framebuffer
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,

@@ -37,7 +37,11 @@ static float get_elapsed_seconds(clock_t start, clock_t end) {
 }
 
 static void init() {
-    fb_alloc(&state.fb, get_window_width(), get_window_height());
+    state.fb = (framebuffer_t){
+        .width = get_window_width(),
+        .height = get_window_height(),
+        .pixels = NULL, // Use buffer provided by window
+    };
 
     state.mesh = (mesh_t){
         .vertices = mesh_vertices,
@@ -56,8 +60,8 @@ static void init() {
 }
 
 static void update(float dt) {
-    // This is slightly slow
-    fb_clear(&state.fb, (vec4){0, 0, 0, 1});
+    state.fb.pixels = lock_surface();
+    clear_fb(&state.fb, (color_t){0, 0, 0});
 
     // Rotate mesh
     state.rotation[0] += .5 * dt;
@@ -71,24 +75,17 @@ static void update(float dt) {
     // Only wireframe supported right now
     // This is not slow at all, what is going on?
     draw_mesh(&state.fb, &state.uniforms, &state.mesh);
-
-    // Copy into the window surface
-    int pitch;
-    // These are very slow, especially lock and unlock, they used to not be tho
-    void *pixels = lock_surface(&pitch);
-    fb_copy_rgba32(&state.fb, pixels, state.fb.width, state.fb.height, pitch);
     unlock_surface();
 }
 
 static void on_resize(int width, int height) {
-    fb_alloc(&state.fb, width, height);
+    state.fb.width = width;
+    state.fb.height = height;
 
     // Update projection matrix
     glm_perspective_default(get_window_aspect_ratio(), state.proj);
     glm_mat4_mul(state.proj, state.view, state.vp);
 }
-
-static void finalize() { fb_free(&state.fb); }
 
 int main() {
     init_window(800, 600, "Software Renderer", true, on_resize);
@@ -132,7 +129,6 @@ int main() {
         frames++;
     }
 
-    finalize();
     destroy_window();
     return 0;
 }

@@ -9,7 +9,7 @@ void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int));
 void destroy_window();
 
-void *lock_surface(int *pitch);
+color_t *lock_surface();
 void unlock_surface();
 
 bool is_window_open();
