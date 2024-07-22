@@ -56,6 +56,7 @@ static void init() {
 }
 
 static void update(float dt) {
+    // This is slightly slow
     fb_clear(&state.fb, (vec4){0, 0, 0, 1});
 
     // Rotate mesh
@@ -68,10 +69,12 @@ static void update(float dt) {
     glm_mat4_mul(state.vp, model, state.uniforms.mvp);
 
     // Only wireframe supported right now
+    // This is not slow at all, what is going on?
     draw_mesh(&state.fb, &state.uniforms, &state.mesh);
 
     // Copy into the window surface
     int pitch;
+    // These are very slow, especially lock and unlock, they used to not be tho
     void *pixels = lock_surface(&pitch);
     fb_copy_rgba32(&state.fb, pixels, state.fb.width, state.fb.height, pitch);
     unlock_surface();
