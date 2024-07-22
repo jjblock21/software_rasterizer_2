@@ -5,18 +5,10 @@ typedef struct {
     color_t color;
 } rvertex_t; // Result vertex
 
-static bool is_outside_viewbox(vec4 pos) {
-    // clang-format off
-    return -pos[3] > pos[0] || pos[0] > pos[3] 
-        || -pos[3] > pos[1] || pos[1] > pos[3] 
-        || -pos[3] > pos[2] || pos[2] > pos[3];
-    // clang-format on
-}
-
 // Perform perspective division and map x and y to screen space
 static void clip_to_screen_space(framebuffer_t *fb, vec4 pos, ivec2 result) {
-    result[0] = (int)roundf((pos[0] / pos[3] + 1) * fb->width / 2);
-    result[1] = (int)roundf((pos[1] / pos[3] + 1) * fb->height / 2);
+    result[0] = roundf((pos[0] / pos[3] + 1) * fb->width / 2);
+    result[1] = roundf((pos[1] / pos[3] + 1) * fb->height / 2);
 }
 
 // Positive if winding order is clockwise
@@ -85,12 +77,6 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
         // Vertex shader results
         rvertex_t v0 = results[i0], v1 = results[i1], v2 = results[i2];
         float *p0 = positions[i0], *p1 = positions[i1], *p2 = positions[i2];
-
-        // Don't render triangles that are not visible
-        if (is_outside_viewbox(p0) && is_outside_viewbox(p1) &&
-            is_outside_viewbox(p2)) {
-            continue;
-        }
 
         ivec2 s0, s1, s2; // Screen positions
         clip_to_screen_space(fb, p0, s0);

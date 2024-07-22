@@ -50,7 +50,7 @@ static void init() {
         .index_count = 36,
     };
 
-    vec4 camera_pos = {0, 0, -3};
+    vec4 camera_pos = {0, 0, -1.5};
     vec4 model_pos = {0, 0, 0};
 
     // Camera matrices
