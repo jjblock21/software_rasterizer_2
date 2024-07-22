@@ -5,11 +5,11 @@
 
 struct window {
     SDL_Window *sdl_window;
-    SDL_Surface *native_surface;
+    SDL_Surface *window_surface;
     SDL_Surface *surface;
+    void *pixels;
     int width, height;
-    bool is_open, surface_invalid;
-    rgba32_t *pixels;
+    bool is_open, update_surface;
     void (*resize_callback)(int, int);
 } window;
 
@@ -20,9 +20,9 @@ void init_window(int width, int height, const char *title, bool resizable,
     window = (struct window){
         .width = width,
         .height = height,
-        .is_open = true,
-        .surface_invalid = true,
         .resize_callback = resize_callback,
+        .is_open = true,
+        .update_surface = true,
     };
 
     int flags = SDL_WINDOW_SHOWN | (resizable ? SDL_WINDOW_RESIZABLE : 0);
@@ -32,50 +32,41 @@ void init_window(int width, int height, const char *title, bool resizable,
     );
 }
 
-static void update_surface() {
-    // Window surface
-    window.native_surface = SDL_GetWindowSurface(window.sdl_window);
-
-    // Working surface
-    if (window.native_surface) {
-        SDL_FreeSurface(window.native_surface);
+void *lock_surface(int *pitch) {
+    if (window.pixels) {
+        return window.pixels; // Already called
     }
-    window.surface = SDL_CreateRGBSurfaceWithFormat(               //
-        0, window.width, window.height, 32, SDL_PIXELFORMAT_RGB888 //
-    );
-}
 
-rgba32_t *lock_surface() {
-    if (!window.pixels) {
-        if (window.surface_invalid) {
-            update_surface();
-            window.surface_invalid = false;
+    if (window.update_surface) {
+        if (window.surface) {
+            SDL_FreeSurface(window.surface);
         }
-
-        SDL_LockSurface(window.surface);
-        window.pixels = window.surface->pixels;
+        window.window_surface = SDL_GetWindowSurface(window.sdl_window);
+        window.surface = SDL_CreateRGBSurfaceWithFormat(
+            0, window.width, window.height, 32, SDL_PIXELFORMAT_RGB888);
     }
+
+    SDL_LockSurface(window.surface);
+    window.pixels = window.surface->pixels;
+
+    *pitch = window.surface->pitch;
     return window.pixels;
 }
 
 void unlock_surface() {
-    if (!window.pixels) return;
+    if (!window.pixels) {
+        return; // Surface not locked
+    }
+
     window.pixels = NULL;
     SDL_UnlockSurface(window.surface);
-
-    // Copy pixels into window surface
-    SDL_Rect rect = {0, 0, window.width, window.height};
-    SDL_BlitSurface(window.surface, &rect, window.native_surface, &rect);
-
-    // Swap buffers
+    SDL_BlitSurface(window.surface, NULL, window.window_surface, NULL);
     SDL_UpdateWindowSurface(window.sdl_window);
 }
 
 void destroy_window() {
     if (window.sdl_window) {
-        if (window.surface) {
-            SDL_FreeSurface(window.surface);
-        }
+        SDL_FreeSurface(window.surface);
         SDL_DestroyWindow(window.sdl_window);
         SDL_Quit();
         window.sdl_window = NULL;
@@ -100,7 +91,7 @@ static void handle_window_event(SDL_WindowEvent event) {
     case SDL_WINDOWEVENT_SIZE_CHANGED:
         // Update window
         SDL_GetWindowSize(window.sdl_window, &window.width, &window.height);
-        window.surface_invalid = true;
+        window.update_surface = true;
 
         // Callback for user code
         if (window.resize_callback) {

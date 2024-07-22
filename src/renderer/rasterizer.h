@@ -10,19 +10,19 @@ typedef struct {
 
 typedef struct {
     vec4 pos;
-    rgba32_t color;
+    vec4 color;
 } vertex_t;
 
 typedef struct {
     vertex_t *vertices;
-    unsigned short *indices;
+    uint16_t *indices;
     int vertex_count;
     int index_count;
 } mesh_t;
 
 // Shorten the syntax for creating vertices
 #define make_vertex(x, y, z, r, g, b)                                          \
-    (vertex_t) { .pos = {x, y, z, 1}, .color = (rgba32_t){r, g, b, 255}, }
+    (vertex_t) { .pos = {x, y, z, 1}, .color = {r, g, b, 1}, }
 
 // Draw a mesh to the given framebuffer
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
