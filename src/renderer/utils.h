@@ -4,6 +4,10 @@
 #include <stdint.h>
 #include <cglm/cglm.h>
 
+typedef struct {
+    uint8_t r, g, b, a;
+} rgba32_t;
+
 int mini(int a, int b);
 int maxi(int a, int b);
 int mini3(int a, int b, int c);
@@ -12,6 +16,7 @@ int maxi3(int a, int b, int c);
 int roundintf(float val);
 
 float lerpf(float a, float b, float t);
+int lerpi(int a, int b, float t);
 
 float clampf(float val, float min, float max);
 

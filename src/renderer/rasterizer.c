@@ -2,7 +2,7 @@
 #include "utils.h"
 
 typedef struct {
-    vec4 color;
+    rgba32_t color;
 } rvertex_t; // Result vertex
 
 static bool is_outside_viewbox(vec4 pos) {
@@ -37,7 +37,8 @@ static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
     float incy = dy / (float)steps;
 
     for (int i = 0; i <= steps; i++) {
-        fb_set_pixel(fb, x, y, GLM_VEC4_ONE);
+        set_pixel(fb, x, y, (rgba32_t){255, 255, 255, 255});
+
         x += incx;
         y += incy;
     }
@@ -68,7 +69,7 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
 
         // This is equivalent to the vertex shader
         glm_mat4_mulv(uniforms->mvp, in->pos, pos);
-        glm_vec4_copy(in->color, out->color);
+        in->color = out->color;
     }
 
     for (int i = 0; i < mesh->index_count - 2; i += 3) {

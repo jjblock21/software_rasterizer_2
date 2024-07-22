@@ -7,10 +7,11 @@
 
 void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int));
-void destroy_window();
 
-void *lock_surface(int *pitch);
+rgba32_t *lock_surface();
 void unlock_surface();
+
+void destroy_window();
 
 bool is_window_open();
 int get_window_width();
