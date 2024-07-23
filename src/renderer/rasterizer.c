@@ -53,20 +53,28 @@ static void draw_triangle(framebuffer_t *fb, rvertex_t v0, ivec2 p0,
             ivec2 pos = {x, y};
 
             // Test if point is in triangle
-            float ef0 = edge_function(p0, p1, pos);
-            float ef1 = edge_function(p1, p2, pos);
-            float ef2 = edge_function(p2, p0, pos);
-            if (ef0 <= 0 && ef1 <= 0 && ef2 <= 2) {
-                set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
-            }
+            float ef01 = edge_function(p0, p1, pos);
+            float ef12 = edge_function(p1, p2, pos);
+            float ef20 = edge_function(p2, p0, pos);
+
+            if (ef01 > 0 || ef12 > 0 || ef20 > 0) continue;
+
+            // Calculate barycentric coordinates for interpolation
+            float b0 = ef12 / area;
+            float b1 = ef20 / area;
+            float b2 = ef01 / area;
+
+            // Interpolate vertex colors
+            float r = v0.color[0] * b0 + v1.color[0] * b1 + v2.color[0] * b2;
+            float g = v0.color[1] * b0 + v1.color[1] * b1 + v2.color[1] * b2;
+            float b = v0.color[2] * b0 + v1.color[2] * b1 + v2.color[2] * b2;
+            char cr = (char)(clampf(r, 0, 1) * 255);
+            char cg = (char)(clampf(g, 0, 1) * 255);
+            char cb = (char)(clampf(b, 0, 1) * 255);
+
+            set_pixel(fb, x, y, (color_t){cr, cg, cb, 255});
         }
     }
-
-    // Draw bounding box
-    draw_line(fb, left, top, right, top, (color_t){255, 0, 0, 255});
-    draw_line(fb, right, top, right, bottom, (color_t){255, 0, 0, 255});
-    draw_line(fb, right, bottom, left, bottom, (color_t){255, 0, 0, 255});
-    draw_line(fb, left, bottom, left, top, (color_t){255, 0, 0, 255});
 }
 
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,

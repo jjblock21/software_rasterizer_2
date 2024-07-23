@@ -19,8 +19,8 @@ vertex_t mesh_vertices[8] = {
     make_vertex(-.5, .5, -.5, 0, 1, 1),  //
     make_vertex(-.5, -.5, .5, 0, 0, 1),  //
     make_vertex(.5, -.5, .5, 1, 0, 1),   //
-    make_vertex(.5, .5, .5, .5, 1, 1),   //
-    make_vertex(-.5, .5, .5, 1, .5, .5), //
+    make_vertex(.5, .5, .5, 0, 0, 0),    //
+    make_vertex(-.5, .5, .5, 1, 1, 1),   //
 };
 
 unsigned short mesh_indices[36] = {
