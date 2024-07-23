@@ -1,10 +1,12 @@
 NAME = software_rasterizer
 
-COMPILER = clang -c
+# Release compile flags
 RFLAGS = -std=c17 -O3 -Iinclude
-DFLAGS = -std=c17 -O0 -Iinclude
 
-LINKER = clang
+# Debug compile flags
+DFLAGS = -std=c17 -g -O0 -Iinclude
+
+# Linker flags
 LFLAGS =
 
 SRCDIR = src
@@ -38,10 +40,10 @@ run: build
 	-$(OUTDIR_RELEASE)\$(NAME).exe
 
 %.exe: $(SOURCES:.c=.o)
-	$(LINKER) $(LFLAGS) $(SOURCES:.c=.o) $(LIBS) -o $@
+	clang $(LFLAGS) $(SOURCES:.c=.o) $(LIBS) -o $@
 
 %.o: %.c
-	$(COMPILER) $(FLAGS) $< -o $@
+	clang -c $(FLAGS) $< -o $@
 
 # Create output directories and copy dependencies
 $(OUTDIR_RELEASE) $(OUTDIR_DEBUG): $(DEPS)
