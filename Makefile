@@ -1,62 +1,50 @@
-# List all files in the specified directory with the specified extension
-__list_files = 											  \
-	$(subst \,/, 										  \
-		$(subst $(shell cd)\$(1)\,, 					  \
-			$(shell dir "$(1)\" /s /b | findstr \S*\$(2)) \
-		) 												  \
-	)
-
-# -------- DO NOT EDIT ABOVE THIS LINE --------
-
 NAME = software_rasterizer
 
 COMPILER = clang -c
-CFLAGS = -std=c17 -O3 -Wall -Iinclude
+RFLAGS = -std=c17 -O3 -Iinclude
+DFLAGS = -std=c17 -O0 -Iinclude
 
 LINKER = clang
-LFLAGS = 
+LFLAGS =
 
 SRCDIR = src
-OBJDIR = obj
-OUTDIR = bin
+OUTDIR_RELEASE = bin\release
+OUTDIR_DEBUG = bin\debug
 
-SOURCES := $(call __list_files,$(SRCDIR),.c)
-LIBS = lib/SDL2.lib lib/SDL2main.lib lib/cglm.lib
-DEPS = lib/SDL2.dll lib/cglm.dll
+# Sources to include in the executable
+SOURCES = $(subst $(shell cd)\,,								\
+			  $(shell dir "$(SRCDIR)\" /s /b | findstr \S*\.c)	\
+		  )														\
 
-# -------- DO NOT EDIT BELOW THIS LINE --------
+# Libraries to include in the executable
+LIBS = lib\SDL2.lib lib\SDL2main.lib lib\cglm.lib
 
-OBJECTS := $(addprefix $(OBJDIR)/,$(patsubst %.c,%.o,$(SOURCES)))
-DIRS := $(SRCDIR) $(patsubst %/,%,$(sort $(dir $(OBJECTS)))) $(OUTDIR)
-OUTPATH := $(OUTDIR)/$(NAME).exe
+# Dependencies to copy to the output directory
+DEPS = lib\SDL2.dll lib\cglm.dll
 
-.PHONY: build run clean rebuild
-.FORCE = $(DIRS)
+.PHONY: build debug clean run
 
-build: $(OUTPATH)
+build: FLAGS = $(RFLAGS)
+build: $(OUTDIR_RELEASE) $(OUTDIR_RELEASE)\$(NAME).exe
 
-# Create output file and copy dependecies to the output dir
-$(OUTPATH): $(DIRS) $(OBJECTS) $(DEPS)
-	$(LINKER) $(LFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPATH)
+debug: FLAGS = $(DFLAGS)
+debug: $(OUTDIR_DEBUG) $(OUTDIR_DEBUG)\$(NAME).exe
 
-	$(foreach DEP,$(DEPS),													  \
-		copy /y $(subst /,\,$(DEP)) $(subst /,\,$(OUTDIR)/$(notdir $(DEP))) & \
-	)
-
-# Create directories required for building
-$(DIRS):
-	-mkdir $(subst /,\,$@)
-
-# Create object files from source files
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(COMPILER) $(CFLAGS) $< -o $@
+clean:
+	$(info $(SOURCES:.c=.o))
+	-rmdir /s /q $(OUTDIR_RELEASE)
+	-rmdir /s /q $(OUTDIR_DEBUG)
 
 run: build
-	-$(OUTPATH)
+	-$(OUTDIR_RELEASE)\$(NAME).exe
 
-# Delete the obj dir and output dir
-clean:
-	-rmdir /s /q $(OUTDIR)
-	-rmdir /s /q $(OBJDIR)
+%.exe: $(SOURCES:.c=.o)
+	$(LINKER) $(LFLAGS) $(SOURCES:.c=.o) $(LIBS) -o $@
 
-rebuild: clean build
+%.o: %.c
+	$(COMPILER) $(FLAGS) $< -o $@
+
+# Create output directories and copy dependencies
+$(OUTDIR_RELEASE) $(OUTDIR_DEBUG): $(DEPS)
+	mkdir $@
+	$(foreach DEP,$?,copy /y $(DEP) $@ &)

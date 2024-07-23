@@ -25,7 +25,6 @@ typedef struct {
     (vertex_t) { .pos = {x, y, z, 1}, .color = {r, g, b}, }
 
 // Draw a mesh to the given framebuffer
-void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
-               const mesh_t *mesh);
+void draw_mesh(framebuffer_t *fb, uniform_data_t *uniforms, mesh_t *mesh);
 
 #endif /* __SRC_RENDERER_RASTERIZER_H__ */
