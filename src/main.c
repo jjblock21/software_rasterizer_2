@@ -13,14 +13,14 @@ struct app_state {
 } state = {0};
 
 vertex_t mesh_vertices[8] = {
-    make_vertex(-.5, -.5, -.5, 255, 0, 0),   //
-    make_vertex(.5, -.5, -.5, 255, 255, 0),  //
-    make_vertex(.5, .5, -.5, 0, 255, 0),     //
-    make_vertex(-.5, .5, -.5, 0, 255, 255),  //
-    make_vertex(-.5, -.5, .5, 0, 0, 255),    //
-    make_vertex(.5, -.5, .5, 255, 0, 255),   //
-    make_vertex(.5, .5, .5, 128, 255, 255),  //
-    make_vertex(-.5, .5, .5, 255, 128, 128), //
+    make_vertex(-.5, -.5, -.5, 1, 0, 0), //
+    make_vertex(.5, -.5, -.5, 1, 1, 0),  //
+    make_vertex(.5, .5, -.5, 0, 1, 0),   //
+    make_vertex(-.5, .5, -.5, 0, 1, 1),  //
+    make_vertex(-.5, -.5, .5, 0, 0, 1),  //
+    make_vertex(.5, -.5, .5, 1, 0, 1),   //
+    make_vertex(.5, .5, .5, .5, 1, 1),   //
+    make_vertex(-.5, .5, .5, 1, .5, .5), //
 };
 
 unsigned short mesh_indices[36] = {
@@ -50,7 +50,7 @@ static void init() {
         .index_count = 36,
     };
 
-    vec4 camera_pos = {0, 0, -1.5};
+    vec4 camera_pos = {0, 0, -3};
     vec4 model_pos = {0, 0, 0};
 
     // Camera matrices
@@ -61,7 +61,7 @@ static void init() {
 
 static void update(float dt) {
     state.fb.pixels = lock_surface();
-    clear(&state.fb, (color_t){0, 0, 0, 1});
+    clear(&state.fb, (color_t){0, 0, 0, 255});
 
     // Rotate mesh
     state.rotation[0] += .5 * dt;
@@ -123,7 +123,7 @@ int main() {
         // Framerate limit
         float elapsed = get_elapsed_seconds(start, clock());
         if (elapsed < interval) {
-            sleep(interval - elapsed);
+            // sleep(interval - elapsed);
         }
 
         frames++;

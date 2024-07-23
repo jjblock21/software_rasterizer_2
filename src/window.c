@@ -37,11 +37,11 @@ static void update_surface() {
     window.native_surface = SDL_GetWindowSurface(window.sdl_window);
 
     // Working surface
-    if (window.native_surface) {
-        SDL_FreeSurface(window.native_surface);
+    if (window.surface) {
+        SDL_FreeSurface(window.surface);
     }
     window.surface = SDL_CreateRGBSurfaceWithFormat(               //
-        0, window.width, window.height, 32, SDL_PIXELFORMAT_RGB888 //
+        0, window.width, window.height, 32, SDL_PIXELFORMAT_RGBA32 //
     );
 }
 

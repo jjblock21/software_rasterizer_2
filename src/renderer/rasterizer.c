@@ -2,7 +2,7 @@
 #include "utils.h"
 
 typedef struct {
-    color_t color;
+    vec3 color;
 } rvertex_t; // Result vertex
 
 // Perform perspective division and map x and y to screen space
@@ -17,19 +17,19 @@ static float edge_function(ivec2 v0, ivec2 v1, ivec2 v2) {
             (v0[0] - v2[0]) * (v0[1] - v1[1]));
 }
 
-static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
-                      ivec2 p1) {
-    int dx = p1[0] - p0[0];
-    int dy = p1[1] - p0[1];
-    float x = p0[0];
-    float y = p0[1];
+static void draw_line(framebuffer_t *fb, int x0, int y0, int x1, int y1,
+                      color_t color) {
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    float x = x0;
+    float y = y0;
 
     int steps = maxi(abs(dx), abs(dy));
     float incx = dx / (float)steps;
     float incy = dy / (float)steps;
 
     for (int i = 0; i <= steps; i++) {
-        set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
+        set_pixel(fb, x, y, color);
 
         x += incx;
         y += incy;
@@ -38,10 +38,35 @@ static void draw_line(framebuffer_t *fb, rvertex_t v0, ivec2 p0, rvertex_t v1,
 
 static void draw_triangle(framebuffer_t *fb, rvertex_t v0, ivec2 p0,
                           rvertex_t v1, ivec2 p1, rvertex_t v2, ivec2 p2) {
-    // Only draw wireframe for now
-    draw_line(fb, v0, p0, v1, p1);
-    draw_line(fb, v1, p1, v2, p2);
-    draw_line(fb, v2, p2, v0, p0);
+    // Only draw front-facing triangles
+    float area = edge_function(p0, p1, p2);
+    if (area > 0) return;
+
+    // Find triangle bounding box
+    int left = mini3(p0[0], p1[0], p2[0]);
+    int top = mini3(p0[1], p1[1], p2[1]);
+    int right = maxi3(p0[0], p1[0], p2[0]);
+    int bottom = maxi3(p0[1], p1[1], p2[1]);
+
+    for (int y = top; y < bottom; y++) {
+        for (int x = left; x < right; x++) {
+            ivec2 pos = {x, y};
+
+            // Test if point is in triangle
+            float ef0 = edge_function(p0, p1, pos);
+            float ef1 = edge_function(p1, p2, pos);
+            float ef2 = edge_function(p2, p0, pos);
+            if (ef0 <= 0 && ef1 <= 0 && ef2 <= 2) {
+                set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
+            }
+        }
+    }
+
+    // Draw bounding box
+    draw_line(fb, left, top, right, top, (color_t){255, 0, 0, 255});
+    draw_line(fb, right, top, right, bottom, (color_t){255, 0, 0, 255});
+    draw_line(fb, right, bottom, left, bottom, (color_t){255, 0, 0, 255});
+    draw_line(fb, left, bottom, left, top, (color_t){255, 0, 0, 255});
 }
 
 void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
@@ -61,7 +86,7 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
 
         // This is equivalent to the vertex shader
         glm_mat4_mulv(uniforms->mvp, in->pos, pos);
-        in->color = out->color;
+        glm_vec3_copy(in->color, out->color);
     }
 
     for (int i = 0; i < mesh->index_count - 2; i += 3) {
@@ -83,9 +108,6 @@ void draw_mesh(framebuffer_t *fb, const uniform_data_t *uniforms,
         clip_to_screen_space(fb, p1, s1);
         clip_to_screen_space(fb, p2, s2);
 
-        // Backface culling (front facing = ccw)
-        if (edge_function(s0, s1, s2) < 0) {
-            draw_triangle(fb, v0, s0, v1, s1, v2, s2);
-        }
+        draw_triangle(fb, v0, s0, v1, s1, v2, s2);
     }
 }
