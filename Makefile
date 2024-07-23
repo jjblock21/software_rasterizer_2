@@ -12,7 +12,7 @@ OUTDIR_RELEASE = bin\release
 OUTDIR_DEBUG = bin\debug
 
 # Sources to include in the executable
-SOURCES = $(subst $(shell cd)\,,								\
+SOURCES := $(subst $(shell cd)\,,								\
 			  $(shell dir "$(SRCDIR)\" /s /b | findstr \S*\.c)	\
 		  )														\
 
@@ -31,7 +31,6 @@ debug: FLAGS = $(DFLAGS)
 debug: $(OUTDIR_DEBUG) $(OUTDIR_DEBUG)\$(NAME).exe
 
 clean:
-	$(info $(SOURCES:.c=.o))
 	-rmdir /s /q $(OUTDIR_RELEASE)
 	-rmdir /s /q $(OUTDIR_DEBUG)
 
