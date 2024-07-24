@@ -9,8 +9,8 @@ static void clip_space_to_viewport(framebuffer_t *fb, vec4 pos, ivec2 result) {
 
 // Positive if winding order is clockwise
 static float edge_function(ivec2 v0, ivec2 v1, ivec2 v2) {
-    return ((v1[0] - v0[0]) * (v2[1] - v0[1]) -
-            (v1[1] - v0[1]) * (v2[0] - v0[0]));
+    return ((v2[0] - v0[0]) * (v1[1] - v0[1]) -
+            (v2[1] - v0[1]) * (v1[0] - v0[0]));
 }
 
 static void draw_line(framebuffer_t *fb, int x0, int y0, int x1, int y1,
@@ -36,7 +36,7 @@ void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
                    ivec2 p1, vertex_t v2, ivec2 p2) {
     // Only draw front-facing triangles
     float area = edge_function(p0, p1, p2);
-    if (area > 0) return;
+    if (area < 0) return;
 
     // Find triangle bounding box
     int left = mini3(p0[0], p1[0], p2[0]);
@@ -52,7 +52,7 @@ void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
             float ef01 = edge_function(p0, p1, pos);
             float ef12 = edge_function(p1, p2, pos);
             float ef20 = edge_function(p2, p0, pos);
-            if (ef01 > 0 || ef12 > 0 || ef20 > 0) continue;
+            if (ef01 < 0 || ef12 < 0 || ef20 < 0) continue;
 
             // Calculate barycentric coordinates for interpolation
             float b0 = ef12 / area;
@@ -67,7 +67,7 @@ void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
             char cr = (char)(clampf(r, 0, 1) * 255);
             char cg = (char)(clampf(g, 0, 1) * 255);
             char cb = (char)(clampf(b, 0, 1) * 255);
-            set_pixel(fb, x, y, (color_t){r, g, b, 255});
+            set_pixel(fb, x, y, (color_t){cr, cg, cb, 255});
         }
     }
 }
