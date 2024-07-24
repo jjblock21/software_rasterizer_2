@@ -60,14 +60,14 @@ void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
             float b2 = ef01 / area;
 
             // Interpolate vertex colors
-            // float r = v0.color[0] * b0 + v1.color[0] * b1 + v2.color[0] * b2;
-            // float g = v0.color[1] * b0 + v1.color[1] * b1 + v2.color[1] * b2;
-            // float b = v0.color[2] * b0 + v1.color[2] * b1 + v2.color[2] * b2;
+            float r = v0.color[0] * b0 + v1.color[0] * b1 + v2.color[0] * b2;
+            float g = v0.color[1] * b0 + v1.color[1] * b1 + v2.color[1] * b2;
+            float b = v0.color[2] * b0 + v1.color[2] * b1 + v2.color[2] * b2;
 
-            // char cr = (char)(clampf(r, 0, 1) * 255);
-            // char cg = (char)(clampf(g, 0, 1) * 255);
-            // char cb = (char)(clampf(b, 0, 1) * 255);
-            set_pixel(fb, x, y, (color_t){255, 255, 255, 255});
+            char cr = (char)(clampf(r, 0, 1) * 255);
+            char cg = (char)(clampf(g, 0, 1) * 255);
+            char cb = (char)(clampf(b, 0, 1) * 255);
+            set_pixel(fb, x, y, (color_t){r, g, b, 255});
         }
     }
 }

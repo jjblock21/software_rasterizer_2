@@ -107,10 +107,10 @@ int main() {
         // Update FPS counter
         time += dt;
         if (time >= 1) {
-            int fps = (int)roundf(frames / time);
+            float fps = frames / time;
             float ft = time / frames * 1000;
 
-            printf("FPS: %d (Limit: %d), avg. Frame Time: %.2fms\n", fps,
+            printf("FPS: %.2f (Limit: %d), avg. Frame Time: %.2fms\n", fps,
                    fps_limit, ft);
 
             frames = 0;
