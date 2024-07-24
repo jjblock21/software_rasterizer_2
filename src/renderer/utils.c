@@ -1,7 +1,5 @@
 #include "utils.h"
 
-#include <math.h>
-
 int mini(int a, int b) { return a < b ? a : b; }
 int maxi(int a, int b) { return a > b ? a : b; }
 int mini3(int a, int b, int c) { return mini(mini(a, b), c); }

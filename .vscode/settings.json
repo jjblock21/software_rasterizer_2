@@ -28,6 +28,7 @@
         "Blit",
         "clampf",
         "clampi",
+        "finput",
         "framebuffer",
         "incx",
         "invslope",
