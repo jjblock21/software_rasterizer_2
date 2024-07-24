@@ -34,15 +34,15 @@ static void draw_line(framebuffer_t *fb, int x0, int y0, int x1, int y1,
 
 void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
                    ivec2 p1, vertex_t v2, ivec2 p2) {
-    // Only draw front-facing triangles
+    // Only draw front-facing (clockwise winding order) triangles
     float area = edge_function(p0, p1, p2);
     if (area < 0) return;
 
     // Find triangle bounding box
-    int left = mini3(p0[0], p1[0], p2[0]);
-    int top = mini3(p0[1], p1[1], p2[1]);
-    int right = maxi3(p0[0], p1[0], p2[0]);
-    int bottom = maxi3(p0[1], p1[1], p2[1]);
+    int left = clampi(mini3(p0[0], p1[0], p2[0]), 0, fb->width);
+    int top = clampi(mini3(p0[1], p1[1], p2[1]), 0, fb->height);
+    int right = clampi(maxi3(p0[0], p1[0], p2[0]), 0, fb->width);
+    int bottom = clampi(maxi3(p0[1], p1[1], p2[1]), 0, fb->height);
 
     for (int y = top; y < bottom; y++) {
         for (int x = left; x < right; x++) {
@@ -50,9 +50,11 @@ void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
 
             // Test if point is in triangle
             float ef01 = edge_function(p0, p1, pos);
+            if (ef01 < 0) continue;
             float ef12 = edge_function(p1, p2, pos);
+            if (ef12 < 0) continue;
             float ef20 = edge_function(p2, p0, pos);
-            if (ef01 < 0 || ef12 < 0 || ef20 < 0) continue;
+            if (ef20 < 0) continue;
 
             // Calculate barycentric coordinates for interpolation
             float b0 = ef12 / area;

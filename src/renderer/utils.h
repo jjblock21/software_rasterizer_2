@@ -19,6 +19,7 @@ float lerpf(float a, float b, float t);
 int lerpi(int a, int b, float t);
 
 float clampf(float val, float min, float max);
+int clampi(int val, int min, int max);
 
 void swapf(float *a, float *b);
 void swapi(int *a, int *b);

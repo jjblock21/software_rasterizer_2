@@ -27,6 +27,7 @@
         "BACKFACE",
         "Blit",
         "clampf",
+        "clampi",
         "framebuffer",
         "incx",
         "invslope",
