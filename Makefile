@@ -1,7 +1,7 @@
 NAME = software_rasterizer
 
 COMPILER = clang -c
-CFLAGS_R = -std=c17 -Iinclude
+CFLAGS_R = -std=c17 -O3 -Iinclude
 CFLAGS_D = -std=c17 -g -Iinclude
 
 LINKER = clang
