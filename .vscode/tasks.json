@@ -8,7 +8,7 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "build"
+                "build_release"
             ],
             "problemMatcher": [
                 "$gcc"
@@ -23,7 +23,7 @@
             "type": "shell",
             "command": "make",
             "args": [
-                "debug"
+                "build_debug"
             ],
             "problemMatcher": [
                 "$gcc"

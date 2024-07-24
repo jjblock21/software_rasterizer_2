@@ -1,4 +1,4 @@
-NAME = sample-project
+NAME = software_rasterizer
 
 COMPILER = clang -c
 CFLAGS_R = -std=c17 -Iinclude
