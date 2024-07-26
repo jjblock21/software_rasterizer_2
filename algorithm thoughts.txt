@@ -1,0 +1,19 @@
+Triangle rasterization algorithm:
+- Have separate lists for every 8x8 square on the screen
+- Using edge functions, check which triangles overlap the 8x8 box and if they fully or partially overlap
+- Add overlapping triangles to the list for a specific square
+- Continue collecting triangles until one of the lists is full
+- For every 8x8 block loop backwards until a full block is found
+- The full block will hide everything behind it, so that doesn't have to be rendered (except with blending, which can be a future me problem)
+- Step forwards from the full block or the end of the list (if it was reached) and render the partial blocks one by one
+- Full blocks can be rendered with a simple double for-loop
+- Partial blocks require evaluating the 3 edge functions for every pixel to check if it overlaps with the triangle
+- After all blocks have been rendered, reset the lists and collect the next set of triangles
+- Continue with this until all triangles have been rasterized
+
+- To calculate the weights for vertex attribute interpolation, store the edge function values for each corner of a block in the list
+- For full blocks, interpolate between them with the i and j variables of the double for loop
+- For partial blocks, use the values calculated for every pixel
+
+- Also no separate interpolation shader stage is needed
+- Instead we can automatically handle the interpolation with some metadata, like OpenGL does with Vertex Arrays
