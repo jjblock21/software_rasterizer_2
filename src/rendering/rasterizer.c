@@ -12,8 +12,6 @@ static void draw_triangle(             //
     varying_t v2, ivec2 p2,            // Vertex 3
     void *userdata                     //
 ) {
-    // TODO Return if triangle doesn't overlap viewport
-
     // Cull backwards facing triangles (counter clockwise winding order)
     float area = edge_function(p0, p1, p2);
     if (area < 0) return;
@@ -62,7 +60,7 @@ void draw_mesh(framebuffer_t fb, shader_t shader, mesh_t mesh, void *userdata) {
         // Run vertex shader
         outbuf[i] = shader.vertex_main(vertex, userdata, clip_pos);
 
-        // Do perspective division and map to viewport
+        // Do perspective division and map to screen coordinates
         int *pos = posbuf[i];
         pos[0] = (int)roundf((clip_pos[0] / clip_pos[3] + 1) * fb.width / 2);
         pos[1] = (int)roundf((clip_pos[1] / clip_pos[3] + 1) * fb.height / 2);
