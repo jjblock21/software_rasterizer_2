@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include "renderer/utils.h"
+#include "rendering/utils.h"
 
 void init_window(int width, int height, const char *title, bool resizable,
                  void (*resize_callback)(int, int));

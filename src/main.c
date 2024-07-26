@@ -2,25 +2,27 @@
 #include <time.h>
 #define SDL_MAIN_HANDLED
 #include "window.h"
-#include "renderer/rasterizer.h"
+#include "rendering/rasterizer.h"
+#include "shaders/shader0.h"
 
 struct app_state {
     framebuffer_t fb;
+    shader_t shader;
     mesh_t mesh;
-    uniform_data_t uniforms;
+    shader0_userdata_t userdata;
     mat4 view, proj, vp;
     vec3 rotation;
 } state = {0};
 
 vertex_t mesh_vertices[8] = {
-    make_vertex(-.5, -.5, -.5, 1, 0, 0), //
-    make_vertex(.5, -.5, -.5, 0, 1, 0),  //
-    make_vertex(.5, .5, -.5, 0, 0, 1),   //
-    make_vertex(-.5, .5, -.5, 1, 0, 0),  //
-    make_vertex(-.5, -.5, .5, 0, 1, 0),  //
-    make_vertex(.5, -.5, .5, 0, 0, 1),   //
-    make_vertex(.5, .5, .5, 1, 0, 0),    //
-    make_vertex(-.5, .5, .5, 0, 1, 0),   //
+    new_vertex(-.5, -.5, -.5, 1, 0, 0), //
+    new_vertex(.5, -.5, -.5, 0, 1, 0),  //
+    new_vertex(.5, .5, -.5, 0, 0, 1),   //
+    new_vertex(-.5, .5, -.5, 1, 0, 0),  //
+    new_vertex(-.5, -.5, .5, 0, 1, 0),  //
+    new_vertex(.5, -.5, .5, 0, 0, 1),   //
+    new_vertex(.5, .5, .5, 1, 0, 0),    //
+    new_vertex(-.5, .5, .5, 0, 1, 0),   //
 };
 
 unsigned short mesh_indices[36] = {
@@ -43,6 +45,12 @@ static void init() {
         .pixels = NULL, // Use pixel buffer provided by window
     };
 
+    state.shader = (shader_t){
+        .vertex_main = shader0_vertex_main,
+        .interp_func = shader0_interp_func,
+        .pixel_main = shader0_pixel_main,
+    };
+
     state.mesh = (mesh_t){
         .vertices = mesh_vertices,
         .indices = mesh_indices,
@@ -61,7 +69,7 @@ static void init() {
 
 static void update(float dt) {
     state.fb.pixels = lock_surface();
-    clear(&state.fb, (color_t){0, 0, 0, 255});
+    clear(state.fb, (color_t){0, 0, 0, 255});
 
     // Rotate mesh
     state.rotation[0] += .5 * dt;
@@ -70,11 +78,9 @@ static void update(float dt) {
     // Calculate mvp matrix
     mat4 model;
     glm_euler(state.rotation, model);
-    glm_mat4_mul(state.vp, model, state.uniforms.mvp);
+    glm_mat4_mul(state.vp, model, state.userdata.mvp);
 
-    // Only wireframe supported right now
-    draw_mesh(&state.fb, &state.uniforms, &state.mesh);
-
+    draw_mesh(state.fb, state.shader, state.mesh, &state.userdata);
     unlock_surface();
 }
 
@@ -123,9 +129,8 @@ int main() {
         // Framerate limit
         float elapsed = get_elapsed_seconds(start, clock());
         if (elapsed < interval) {
-            sleep(interval - elapsed);
+            // sleep(interval - elapsed);
         }
-
         frames++;
     }
     destroy_window();

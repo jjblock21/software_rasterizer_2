@@ -24,4 +24,6 @@ int clampi(int val, int min, int max);
 void swapf(float *a, float *b);
 void swapi(int *a, int *b);
 
+color_t vec3_to_color(vec3 vec);
+
 #endif /* __SRC_RENDERER_UTILS_H__ */

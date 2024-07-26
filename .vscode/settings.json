@@ -41,6 +41,7 @@
         "lookat",
         "mulv",
         "PIXELFORMAT",
+        "posbuf",
         "roundintf",
         "rvertex",
         "scanline",

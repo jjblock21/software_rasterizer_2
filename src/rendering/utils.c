@@ -30,3 +30,12 @@ void swapi(int *a, int *b) {
     *a = *b;
     *b = t;
 }
+
+color_t vec3_to_color(vec3 vec) {
+    return (color_t){
+        .r = (char)(clampf(vec[0], 0, 1) * 255),
+        .g = (char)(clampf(vec[1], 0, 1) * 255),
+        .b = (char)(clampf(vec[2], 0, 1) * 255),
+        .a = 255,
+    };
+}
