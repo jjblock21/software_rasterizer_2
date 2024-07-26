@@ -60,6 +60,9 @@ static void draw_triangle(framebuffer_t *fb, vertex_t v0, ivec2 p0, vertex_t v1,
             float ef20 = edge_function(p2, p0, pos);
             if (ef20 < 0) continue;
 
+            // TODO: Rewrite this using
+            // https://www.researchgate.net/publication/286441992_Accelerated_Half-Space_Triangle_Rasterization
+
             // Interpolate the data of the triangle vertices
             finput_t fi = interp_vertices(v0, ef12 / area, v1, ef20 / area, v2,
                                           ef01 / area);

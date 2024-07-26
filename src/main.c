@@ -123,7 +123,7 @@ int main() {
         // Framerate limit
         float elapsed = get_elapsed_seconds(start, clock());
         if (elapsed < interval) {
-            // sleep(interval - elapsed);
+            sleep(interval - elapsed);
         }
 
         frames++;
